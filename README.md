@@ -290,117 +290,100 @@ By the end of Week 2:
 This week bridges classical ML concepts and modern deep learning representations.
 
 
+## Week 3 – Feature Extraction, Embeddings & Object Detection
 
+### Dataset Used
 
+For Week 3, we used the **Vehicle Damage Dataset** from Kaggle:
 
- 
-# Week 3 – Feature Extraction, CNN Embeddings & Object Detection (YOLO)
+🔗 https://www.kaggle.com/datasets/hendrichscullen/vehide-dataset-automatic-vehicle-damage-detection
 
-This week focuses on **computer vision fundamentals and deep learning–based representations**, applied to a **vehicle damage dataset**. The work progresses from classical feature extraction to deep embeddings and finally real-world object detection using YOLO.
+This dataset contains thousands of real-world vehicle images showing various types and degrees of damage. It provides a rich benchmark for testing computer vision techniques such as:
+- Handcrafted feature extraction (HOG)
+- Deep feature embeddings (CNN)
+- Object detection (YOLO)
 
 ---
 
 ## Dataset Preparation
 
-### Original Dataset Structure
-The original dataset contained raw vehicle images and auxiliary folders such as:
-- `image/` – raw vehicle damage images
-- `runs/` – YOLO inference outputs
-- `validation/` – validation images and annotations
+The raw dataset was downloaded from Kaggle and reorganized into a format suitable for deep learning workflows.
 
-### Conversion to CNN-Compatible Format
-To enable **CNN training and embedding extraction**, the dataset was reorganized into a Keras-friendly directory structure:
+### Original Structure
+The raw dataset contained all images in a flat directory and additional folders.
 
+### Converted Structure (`cnn_data/`)
 
-This conversion ensures compatibility with:
-- `tf.keras.preprocessing.image_dataset_from_directory`
-- Standard CNN pipelines
-- Embedding extraction workflows
+This conversion allows:
+- Compatibility with TensorFlow/Keras training and embedding extraction
+- Clean separation of training and validation data
+- Easier use of high-level image pipelines
 
-The conversion step was critical for maintaining **clean train/validation splits** and reproducible experiments.
+Both **train** and **validation** subsets were created and labeled accordingly for CNN-based processing.
 
 ---
 
 ## Files and Work Done
 
 ### 1. `Week3_HOG.ipynb`
-**Classical Feature Extraction using HOG (Histogram of Oriented Gradients)**
+**Topic:** Handcrafted Feature Extraction using HOG
 
 **What was done:**
-- Loaded vehicle damage images
-- Converted images to grayscale
-- Resized images to a fixed resolution
-- Extracted HOG features using `skimage`
+- Loaded vehicle damage images from the dataset
+- Converted images to grayscale and resized
+- Extracted **Histogram of Oriented Gradients (HOG)** features
 - Visualized:
   - Original images
-  - Corresponding HOG representations
-- Applied **PCA / t-SNE** to reduce HOG feature dimensionality
+  - HOG feature maps
+- Applied **PCA/t-SNE** to visualize HOG feature distributions
 
 **Key learning:**
-- Understanding edge-based handcrafted features
-- Visual intuition behind gradient-based descriptors
-- Limitations of classical features compared to deep embeddings
+- HOG captures edge–gradient structures
+- Useful for classical vision tasks
+- Limited in semantic representation compared to CNN embeddings
 
 ---
 
 ### 2. `Week3_CNN_Embeddings.ipynb`
-**Deep Feature Extraction using Convolutional Neural Networks**
+**Topic:** Deep Feature Extraction using CNNs
 
 **What was done:**
-- Loaded data from the newly created `cnn_data/` directory
-- Built a simple CNN architecture:
-
-- Trained the CNN for a few epochs (representation learning focus)
-- Created an **embedding model** by removing the final classification layer
-- Extracted fixed-length feature vectors (embeddings) for each image
-- Applied **PCA / t-SNE** to visualize embeddings in 2D space
+- Loaded data from the `cnn_data/` directory
+- Built a simple CNN architecture using TensorFlow/Keras
+- Trained CNN briefly to extract features
+- Created an **embedding model** by removing the final classifier
+- Extracted dense feature vectors for images
+- Applied PCA/t-SNE to embed and visualize in 2D
 
 **Key learning:**
-- Difference between classification models and embedding models
-- How CNNs learn semantic representations automatically
-- Why CNN embeddings outperform handcrafted features
+- CNN embeddings capture higher-level semantic information
+- Embeddings reveal patterns not obvious from raw pixels
+- CNNs outperform classical features for complex image data
 
 ---
 
 ### 3. `Week3_YOLO_Inference.ipynb`
-**Real-Time Object Detection using YOLOv8**
+**Topic:** Object Detection using Pretrained YOLOv8
 
 **What was done:**
-- Used pretrained `yolov8n.pt` weights from Ultralytics
-- Ran object detection directly on vehicle images
-- Performed inference on folders containing images
-- Saved detection outputs (bounding boxes + labels) to `runs/detect/`
-- Visualized predictions using OpenCV / Matplotlib
-
-**Objects detected include:**
-- Cars
-- Trucks
-- Other vehicles
+- Loaded the pretrained **YOLOv8n** weights
+- Performed inference on organized image dataset
+- Detected objects and bounding boxes
+- Saved outputs to `runs/detect/predict/`
+- Visualized detections with OpenCV/Matplotlib
 
 **Key learning:**
-- Difference between classification and object detection
-- How pretrained detectors generalize to unseen datasets
-- Practical challenges of file paths, inference pipelines, and large datasets
+- Pretrained models can generalize effectively to new datasets
+- Object detection complements embedding and feature extraction
 
 ---
 
 ### 4. `Week3_ProblemSet.md`
-Contains conceptual questions and reasoning related to:
-- Feature extraction
-- CNN embeddings
+Contains written responses to theoretical questions related to:
+- Feature extraction mechanics
 - Dimensionality reduction
-- Object detection pipelines
-
----
-
-## Key Concepts Learned
-
-- Handcrafted vs Deep Features
-- CNN representation learning
-- Embedding extraction and visualization
-- Dataset structuring for deep learning
-- Real-world object detection using YOLO
-- Practical debugging of data pipelines and file systems
+- Embedding interpretation
+- Object detection logic
 
 ---
 
@@ -410,24 +393,28 @@ Contains conceptual questions and reasoning related to:
 - NumPy, Pandas
 - OpenCV
 - Matplotlib
-- scikit-image
-- TensorFlow / Keras
-- Ultralytics YOLOv8
+- scikit-image (HOG)
+- TensorFlow/Keras (CNN embeddings)
 - scikit-learn (PCA, t-SNE)
+- Ultralytics YOLOv8 (object detection)
 
 ---
 
-## Outcome
+## Key Concepts Learned
 
-By the end of Week 3:
-- Built intuition from **classical CV → deep learning**
-- Learned to **prepare datasets properly for CNNs**
-- Extracted meaningful embeddings from images
-- Applied **industry-grade object detection models**
-- Gained hands-on experience debugging real ML pipelines
+- Difference between handcrafted and learned features
+- CNN representation learning
+- Embedding visualization techniques
+- Practical dataset structuring for deep learning
+- Object detection pipelines
+- Debugging real data-processing workflows
 
-This work forms a strong foundation for advanced computer vision and applied deep learning projects.
+---
+
+## Summary
+
+In Week 3, we progressed from basic image descriptors (HOG) to deep neural embeddings and modern pretrained object detectors (YOLOv8). The Kaggle vehicle damage dataset provided a realistic environment to evaluate and compare feature extraction and detection methods, laying a strong foundation for later weeks involving model training and performance evaluation.
 
 
 
-
+ 
