@@ -87,7 +87,7 @@ This assignment introduced unsupervised learning through K-Means clustering.
 - Hands-on experience with NumPy, Pandas, and Matplotlib
 - Understanding of data preprocessing and visualization workflows
 - Introduction to unsupervised learning via K-Means clustering
-- Prepared groundwork for regression, dimensionality reduction, and computer vision tasks in later weeks
+
 
 ---
 ### Week 1: Linear & Logistic Regression (Supervised Learning)
@@ -182,87 +182,118 @@ Built a strong foundation in supervised learning, optimization, and model evalua
 which directly supports later work in dimensionality reduction, computer vision,
 and deep learning models.
 
-## Week 2: Dimensionality Reduction (PCA & t-SNE)
+# Week 2 – Dimensionality Reduction (PCA & t-SNE)
 
-This week focused on **dimensionality reduction techniques** used for understanding, visualizing, and compressing high-dimensional data. The primary goal was to learn how complex datasets can be projected into lower dimensions while preserving meaningful structure.
-
----
-
-##  Files
-
+This week focuses on **unsupervised learning and dimensionality reduction techniques**, applied to the **`load_digits` dataset** from scikit-learn. The goal was to understand how high-dimensional data can be compressed and visualized while preserving important structure.
 
 ---
 
-## 🔹 Principal Component Analysis (PCA)
+## Dataset Used
 
-**File:** `week2_pca_task_completed.ipynb`
+### `load_digits` Dataset (scikit-learn)
 
-### Objective
-To reduce the dimensionality of a dataset while retaining maximum variance using a **linear transformation**.
+- Source: `sklearn.datasets.load_digits`
+- Contains **8×8 grayscale images of handwritten digits (0–9)**
+- Each image is flattened into a **64-dimensional feature vector**
+- Labels correspond to digit classes (0–9)
 
-### What was done
-- Loaded a multi-dimensional dataset
-- Standardized features to ensure zero mean and unit variance
-- Computed:
-  - Covariance matrix
-  - Eigenvalues and eigenvectors
-- Selected top principal components based on explained variance
-- Projected data onto lower-dimensional space (2D)
-- Visualized data before and after dimensionality reduction
-
-### Key Concepts Learned
-- Variance maximization
-- Eigen decomposition
-- Explained variance ratio
-- Feature compression
-- Noise reduction
+This dataset is widely used for:
+- Visualizing high-dimensional data
+- Testing dimensionality reduction algorithms
+- Understanding feature manifolds in image data
 
 ---
 
-## 🔹 t-Distributed Stochastic Neighbor Embedding (t-SNE)
+## Files and Work Done
 
-**File:** `week2_tsne_task_completed.ipynb`
+### 1. `week2_pca_task_completed.ipynb`
+**Principal Component Analysis (PCA)**
 
-### Objective
-To visualize **non-linear high-dimensional data** in 2D while preserving local neighborhood relationships.
+**What was done:**
+- Loaded the `load_digits` dataset
+- Standardized features before applying PCA
+- Applied PCA to reduce dimensions:
+  - From 64 → 2 and 3 dimensions
+- Visualized digit distributions in reduced space
+- Analyzed:
+  - Explained variance ratio
+  - Contribution of principal components
 
-### What was done
-- Used the same or similar dataset as PCA
-- Applied t-SNE for 2D embedding
-- Experimented with parameters such as:
+**Key learning:**
+- PCA as a **linear dimensionality reduction technique**
+- Trade-off between variance retention and compression
+- Interpretation of eigenvectors and eigenvalues
+
+---
+
+### 2. `week2_tsne_task_completed.ipynb`
+**t-SNE (t-Distributed Stochastic Neighbor Embedding)**
+
+**What was done:**
+- Used the same `load_digits` dataset
+- Applied t-SNE to project 64-dimensional data into 2D
+- Visualized clusters corresponding to digit classes
+- Tuned parameters such as:
   - Perplexity
   - Learning rate
-- Visualized clusters formed in lower-dimensional space
-- Compared t-SNE visualizations with PCA results
+  - Number of iterations
 
-### Key Concepts Learned
-- Non-linear dimensionality reduction
-- Local vs global structure preservation
-- Manifold learning
-- When to use PCA vs t-SNE
+**Key learning:**
+- t-SNE as a **non-linear dimensionality reduction technique**
+- Preservation of local neighborhood structure
+- Clear visual separation of digit clusters
+- Differences between PCA and t-SNE in visualization quality
 
 ---
 
-##  PCA vs t-SNE (Summary)
+## Comparison: PCA vs t-SNE
 
 | Aspect | PCA | t-SNE |
 |------|----|------|
 | Type | Linear | Non-linear |
-| Goal | Variance preservation | Local structure visualization |
+| Preserves | Global variance | Local structure |
 | Speed | Fast | Computationally expensive |
-| Interpretability | High | Low |
-| Use case | Feature reduction | Data visualization |
+| Visualization | Moderate | Very clear clusters |
 
 ---
 
-##  Key Takeaways
+## Concepts Learned
 
-- Learned how to reduce dimensionality for visualization and preprocessing
-- Understood limitations of linear methods like PCA
-- Gained hands-on experience with non-linear embedding using t-SNE
-- Built intuition for choosing appropriate dimensionality reduction techniques in ML workflows
+- Curse of dimensionality
+- Feature space compression
+- Linear vs non-linear embeddings
+- Manifold learning intuition
+- Visualization of high-dimensional image data
 
 ---
+
+## Tools & Libraries Used
+
+- Python
+- NumPy
+- Matplotlib
+- scikit-learn
+  - `load_digits`
+  - `PCA`
+  - `TSNE`
+
+---
+
+## Outcome
+
+By the end of Week 2:
+- Gained hands-on experience with **unsupervised learning**
+- Understood how digit images form clusters in feature space
+- Learned when to use PCA vs t-SNE
+- Built strong intuition for **representation learning and visualization**
+
+This week bridges classical ML concepts and modern deep learning representations.
+
+
+
+
+
+ 
 # Week 3 – Feature Extraction, CNN Embeddings & Object Detection (YOLO)
 
 This week focuses on **computer vision fundamentals and deep learning–based representations**, applied to a **vehicle damage dataset**. The work progresses from classical feature extraction to deep embeddings and finally real-world object detection using YOLO.
