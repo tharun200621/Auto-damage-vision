@@ -15,8 +15,8 @@ This week focused on building strong fundamentals in Python programming and core
 
 ### Files
 - `python_basics.ipynb`
-- `example (1).csv`
-- `videogamesales (2).csv`
+- `example.csv`
+- `videogamesales.csv`
 
 ### Description
 This section introduces basic Python programming concepts required for data science and machine learning.
@@ -35,8 +35,8 @@ This section introduces basic Python programming concepts required for data scie
 
 ### Files
 - `numpy_basics.ipynb`
-- `pandas_basics.ipynb`
-- `matplotlib_basics.ipynb`
+- `pandas_basics_.ipynb`
+- `matplotlib_basics_.ipynb`
 - `output.csv`
 
 ### NumPy
@@ -60,8 +60,8 @@ This section introduces basic Python programming concepts required for data scie
 
 ### Files
 - `Assignments.ipynb`
-- `spice_locations (1).txt`
-- `Lisan_Al_Gaib (1).pdf`
+- `spice_locations.txt`
+- `Lisan_Al_Gaib.pdf`
 - `kmeans.png`
 
 ### Description
