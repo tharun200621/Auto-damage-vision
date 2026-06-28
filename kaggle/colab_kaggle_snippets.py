@@ -100,7 +100,10 @@ print(open(DATA_YAML).read())
 
 
 # === SNIPPET 5 — Validate the recovered detector ============================
-# If this prints GOOD, SKIP snippet 6. If WEAK, run snippet 6.
+# If this prints GOOD, SKIP snippet 6. If WEAK or it errors, run snippet 6.
+# NOTE: the original recovered best_model.pt was a 5-class model, so this
+# errors ("index 5 out of bounds") against the 6-class data -> run snippet 6,
+# which trains a proper 6-class detector and overwrites best_model.pt.
 from ultralytics import YOLO
 
 detector = None
@@ -137,26 +140,52 @@ print("Saved new best_model.pt")
 
 # === SNIPPET 7 — Train the severity classifier (MobileNetV2, hand-labels) ====
 # Trains on your 195 hand-labeled crops only (minor/moderate/severe).
-# NO auto-labeling and NO .cache() -> avoids the out-of-memory crash.
-# MobileNetV2 transfer learning + augmentation handles this small set well.
-import cv2, numpy as np
+# STRATIFIED split: 20% of EACH class goes to val, so val has all 3 classes.
+# (The old validation_split split by file order -> val was ~all 'severe' and
+#  the 97% accuracy was an artifact. This fixes that.)
+# class_weight handles the 59/47/89 imbalance. No .cache() -> low RAM.
+import cv2, numpy as np, random
 import tensorflow as tf
 from pathlib import Path
 from tensorflow.keras import layers, models
 from tensorflow.keras.applications import MobileNetV2
+from sklearn.utils.class_weight import compute_class_weight
 
 DAMAGE_NAMES = ['dent', 'scratch', 'crack', 'glass shatter', 'lamp broken', 'tire flat']
 CLASSES = ['minor', 'moderate', 'severe']
 IMG, BATCH = (224, 224), 16
 
-train_ds = tf.keras.utils.image_dataset_from_directory(
-    HAND, validation_split=0.2, subset='training', seed=42,
-    image_size=IMG, batch_size=BATCH, class_names=CLASSES, label_mode='int')
-val_ds = tf.keras.utils.image_dataset_from_directory(
-    HAND, validation_split=0.2, subset='validation', seed=42,
-    image_size=IMG, batch_size=BATCH, class_names=CLASSES, label_mode='int', shuffle=False)
-train_ds = train_ds.prefetch(tf.data.AUTOTUNE)   # no .cache() -> low RAM
-val_ds = val_ds.prefetch(tf.data.AUTOTUNE)
+# Build a stratified file list: per class, 20% -> val, 80% -> train.
+random.seed(42)
+train_files, train_lab, val_files, val_lab = [], [], [], []
+for ci, c in enumerate(CLASSES):
+    fs = [str(f) for f in (Path(HAND) / c).iterdir()
+          if f.suffix.lower() in ('.jpg', '.jpeg', '.png')]
+    random.shuffle(fs)
+    k = max(1, round(len(fs) * 0.2))
+    val_files += fs[:k];   val_lab += [ci] * k
+    train_files += fs[k:]; train_lab += [ci] * (len(fs) - k)
+print("Train per class:", {c: train_lab.count(i) for i, c in enumerate(CLASSES)})
+print("Val   per class:", {c: val_lab.count(i) for i, c in enumerate(CLASSES)})
+
+def load(path, label):
+    img = tf.io.decode_jpeg(tf.io.read_file(path), channels=3)
+    img = tf.image.resize(img, IMG)
+    return img, label
+
+def make_ds(files, labs, training):
+    ds = tf.data.Dataset.from_tensor_slices((files, labs))
+    if training:
+        ds = ds.shuffle(len(files), seed=42)
+    ds = ds.map(load, num_parallel_calls=tf.data.AUTOTUNE)
+    return ds.batch(BATCH).prefetch(tf.data.AUTOTUNE)
+
+train_ds = make_ds(train_files, train_lab, True)
+val_ds = make_ds(val_files, val_lab, False)
+
+cw = compute_class_weight('balanced', classes=np.arange(3), y=np.array(train_lab))
+class_weight = {i: float(w) for i, w in enumerate(cw)}
+print("class_weight:", class_weight)
 
 aug = models.Sequential([layers.RandomFlip('horizontal'),
                          layers.RandomRotation(0.1), layers.RandomZoom(0.1)])
@@ -167,8 +196,8 @@ model = models.Sequential([
     layers.GlobalAveragePooling2D(), layers.Dropout(0.3),
     layers.Dense(len(CLASSES), activation='softmax')])
 model.compile('adam', 'sparse_categorical_crossentropy', metrics=['accuracy'])
-hist = model.fit(train_ds, validation_data=val_ds, epochs=25,
-                 callbacks=[tf.keras.callbacks.EarlyStopping(patience=6, restore_best_weights=True)])
+hist = model.fit(train_ds, validation_data=val_ds, epochs=25, class_weight=class_weight,
+                 callbacks=[tf.keras.callbacks.EarlyStopping(patience=8, restore_best_weights=True)])
 print("\nBest val accuracy:", round(max(hist.history['val_accuracy']), 3))
 model.save(WORK + '/severity_model.h5')
 open(WORK + '/severity_classes.txt', 'w').write("\n".join(CLASSES))
@@ -186,7 +215,12 @@ for t, p in zip(y_true, y_pred):
     cm[t, p] += 1
 print("rows=true, cols=pred  order:", CLASSES)
 print(cm)
-print("val accuracy (hand-labeled):", round(float(np.trace(cm) / cm.sum()) if cm.sum() else 0, 3))
+overall = float(np.trace(cm) / cm.sum()) if cm.sum() else 0
+print("\nval accuracy (hand-labeled):", round(overall, 3))
+# Per-class recall — exposes any single-class collapse (the old 97% bug).
+for i, c in enumerate(CLASSES):
+    n = cm[i].sum()
+    print(f"  {c:9s} recall: {cm[i, i] / n:.2f}  (n={n})" if n else f"  {c:9s}: no val samples")
 
 
 # === SNIPPET 9 — End-to-end demo =============================================
