@@ -9,12 +9,15 @@ directly from Kaggle via the API (no slow Drive upload). You only upload the
 small 21.6 MB bundle (best_model.pt + your hand-labeled crops).
 
 ONE-TIME PREP — get a Kaggle API token:
-  1. kaggle.com -> your avatar -> Settings -> "Create New Token"
-     (downloads kaggle.json to your computer).
-  2. Run Snippet 1, click "Choose Files", and upload that kaggle.json.
+  1. kaggle.com -> avatar -> Settings -> API -> "Create New Token".
+  2. Copy the KGAT_... value. Snippet 1 will prompt you to paste it (hidden).
 
-Then Snippet 2 uploads upload_to_kaggle.zip (it's in your repo at
-kaggle/upload_to_kaggle.zip).
+For Snippet 2: open the Files panel (folder icon, left sidebar) and DRAG
+kaggle/upload_to_kaggle.zip into it. (Do NOT use the files.upload() widget —
+it crashes the browser on files this size.)
+
+This trains the severity model on your 195 hand-labeled crops only — no
+auto-labeling step, no .cache() — so it won't run out of RAM.
 
 Set Colab Runtime > Change runtime type > T4 GPU before running.
 ================================================================================
@@ -28,31 +31,33 @@ print("CUDA available:", torch.cuda.is_available(), "|",
 
 get_ipython().system('pip -q install ultralytics==8.* kaggle >/dev/null')
 
-import os
-from google.colab import files
-print("\nUpload your kaggle.json (Kaggle > Settings > Create New Token):")
-up = files.upload()                     # pick kaggle.json
-os.makedirs('/root/.kaggle', exist_ok=True)
-os.replace('kaggle.json', '/root/.kaggle/kaggle.json')
-os.chmod('/root/.kaggle/kaggle.json', 0o600)
-print("Kaggle token installed.")
+# Kaggle's new tokens are a KGAT_... string (Settings > API > Create New Token).
+# getpass hides it as you type — paste it at the prompt, do NOT hardcode it here.
+import os, getpass
+os.environ['KAGGLE_API_TOKEN'] = getpass.getpass("Paste your Kaggle token (KGAT_...): ").strip()
+print("Kaggle token set.")
 
 
-# === SNIPPET 2 — Upload your small bundle (crops + weights) =================
-from google.colab import files
-print("Upload kaggle/upload_to_kaggle.zip from your repo:")
-up = files.upload()                     # pick upload_to_kaggle.zip
+# === SNIPPET 2 — Unpack your bundle (drag the zip into the Files panel) ======
+# DO NOT use files.upload() — its browser widget crashes on >~10MB (OOM).
+# Instead: open the Files panel (folder icon, left sidebar) and DRAG
+# upload_to_kaggle.zip into it (drops at /content/). Then run this cell.
 import zipfile
+ZIP = '/content/upload_to_kaggle.zip'
+assert os.path.exists(ZIP), "Drag upload_to_kaggle.zip into the Files panel first, then re-run."
 os.makedirs('/content/mydata', exist_ok=True)
-with zipfile.ZipFile('upload_to_kaggle.zip') as z:
+with zipfile.ZipFile(ZIP) as z:
     z.extractall('/content/mydata')
 print("Extracted to /content/mydata:", sorted(os.listdir('/content/mydata')))
+for c in ['minor', 'moderate', 'severe']:
+    p = f'/content/mydata/{c}'
+    print(f"  {c}: {len(os.listdir(p)) if os.path.isdir(p) else 'MISSING'}")
 
 
 # === SNIPPET 3 — Download the CarDD dataset from Kaggle =====================
-# If this exact slug 404s, run:  !kaggle datasets list -s "cardd yolo"
+# If this slug 404s, run:  !kaggle datasets list -s "cardd yolo"
 # and replace DATASET_SLUG with the owner/name it prints.
-DATASET_SLUG = 'cardd-with-yolo-annotations-images-labels'
+DATASET_SLUG = 'gabrielfcarvalho/cardd-with-yolo-annotations-images-labels'
 os.makedirs('/content/cardd', exist_ok=True)
 get_ipython().system(f'kaggle datasets download -d {DATASET_SLUG} -p /content/cardd --unzip')
 # Locate the folder that actually contains train/images
@@ -130,104 +135,28 @@ detector = YOLO(BEST)
 print("Saved new best_model.pt")
 
 
-# === SNIPPET 7 — Severity labeling rule ======================================
+# === SNIPPET 7 — Train the severity classifier (MobileNetV2, hand-labels) ====
+# Trains on your 195 hand-labeled crops only (minor/moderate/severe).
+# NO auto-labeling and NO .cache() -> avoids the out-of-memory crash.
+# MobileNetV2 transfer learning + augmentation handles this small set well.
 import cv2, numpy as np
-from pathlib import Path
-
-DAMAGE_NAMES = ['dent', 'scratch', 'crack', 'glass shatter', 'lamp broken', 'tire flat']
-SEVERE_TYPES = {'glass shatter', 'lamp broken', 'tire flat', 'crack'}
-
-def rule_severity(damage, box_frac):
-    if damage in SEVERE_TYPES:
-        return 'severe' if box_frac > 0.05 else 'moderate'
-    if damage == 'scratch':
-        return 'moderate' if box_frac > 0.10 else 'minor'
-    if damage == 'dent':
-        if box_frac > 0.12: return 'severe'
-        if box_frac > 0.04: return 'moderate'
-        return 'minor'
-    return 'moderate'
-
-
-# === SNIPPET 8 — Auto-label extra severity crops (weak supervision) ==========
-OUT = Path(WORK) / 'severity_auto'
-for c in ['minor', 'moderate', 'severe']:
-    (OUT / c).mkdir(parents=True, exist_ok=True)
-counts = {'minor': 0, 'moderate': 0, 'severe': 0}
-CONF = 0.30
-SRC_DIRS = [os.path.join(CARDD, 'train/images'), os.path.join(CARDD, 'val/images')]
-
-n_img = 0
-for sd in SRC_DIRS:
-    if not os.path.isdir(sd):
-        continue
-    for name in os.listdir(sd):
-        img = cv2.imread(os.path.join(sd, name))
-        if img is None:
-            continue
-        H, W = img.shape[:2]
-        n_img += 1
-        for r in detector(img, conf=CONF, verbose=False):
-            if r.boxes is None:
-                continue
-            for b in r.boxes:
-                x1, y1, x2, y2 = map(int, b.xyxy[0])
-                if x2 <= x1 or y2 <= y1:
-                    continue
-                damage = DAMAGE_NAMES[int(b.cls[0])] if int(b.cls[0]) < len(DAMAGE_NAMES) else 'dent'
-                frac = ((x2 - x1) * (y2 - y1)) / float(W * H)
-                sev = rule_severity(damage, frac)
-                crop = img[y1:y2, x1:x2]
-                if crop.size == 0:
-                    continue
-                counts[sev] += 1
-                cv2.imwrite(str(OUT / sev / f"auto_{counts[sev]}.jpg"), crop)
-print(f"Scanned {n_img} images. Auto-labeled crops:", counts, "total", sum(counts.values()))
-
-
-# === SNIPPET 9 — Build train (auto + hand) and val (hand only) splits ========
-import random
-CLASSES = ['minor', 'moderate', 'severe']
-train_root = Path(WORK) / 'sev_train'
-val_root = Path(WORK) / 'sev_val'
-for root in (train_root, val_root):
-    if root.exists():
-        shutil.rmtree(root)
-    for c in CLASSES:
-        (root / c).mkdir(parents=True, exist_ok=True)
-
-random.seed(42)
-for c in CLASSES:
-    src = Path(HAND) / c
-    files_ = [f for f in src.iterdir() if f.suffix.lower() in ('.jpg', '.jpeg', '.png')] if src.is_dir() else []
-    random.shuffle(files_)
-    k = max(1, int(len(files_) * 0.2))
-    for f in files_[:k]:
-        shutil.copy(f, val_root / c / f.name)               # trusted val
-    for f in files_[k:]:
-        shutil.copy(f, train_root / c / ('hand_' + f.name))   # hand -> train
-for c in CLASSES:
-    ad = OUT / c
-    if ad.is_dir():
-        for f in ad.iterdir():
-            shutil.copy(f, train_root / c / f.name)          # auto -> train
-for c in CLASSES:
-    print(f"{c:9s} train={len(list((train_root/c).iterdir())):4d}  val={len(list((val_root/c).iterdir())):3d}")
-
-
-# === SNIPPET 10 — Train the severity classifier (MobileNetV2) ================
 import tensorflow as tf
+from pathlib import Path
 from tensorflow.keras import layers, models
 from tensorflow.keras.applications import MobileNetV2
 
+DAMAGE_NAMES = ['dent', 'scratch', 'crack', 'glass shatter', 'lamp broken', 'tire flat']
+CLASSES = ['minor', 'moderate', 'severe']
 IMG, BATCH = (224, 224), 16
+
 train_ds = tf.keras.utils.image_dataset_from_directory(
-    train_root, image_size=IMG, batch_size=BATCH, class_names=CLASSES, label_mode='int', seed=42)
+    HAND, validation_split=0.2, subset='training', seed=42,
+    image_size=IMG, batch_size=BATCH, class_names=CLASSES, label_mode='int')
 val_ds = tf.keras.utils.image_dataset_from_directory(
-    val_root, image_size=IMG, batch_size=BATCH, class_names=CLASSES, label_mode='int', shuffle=False)
-AUTOTUNE = tf.data.AUTOTUNE
-train_ds = train_ds.cache().shuffle(500).prefetch(AUTOTUNE)
-val_ds = val_ds.cache().prefetch(AUTOTUNE)
+    HAND, validation_split=0.2, subset='validation', seed=42,
+    image_size=IMG, batch_size=BATCH, class_names=CLASSES, label_mode='int', shuffle=False)
+train_ds = train_ds.prefetch(tf.data.AUTOTUNE)   # no .cache() -> low RAM
+val_ds = val_ds.prefetch(tf.data.AUTOTUNE)
 
 aug = models.Sequential([layers.RandomFlip('horizontal'),
                          layers.RandomRotation(0.1), layers.RandomZoom(0.1)])
@@ -246,7 +175,7 @@ open(WORK + '/severity_classes.txt', 'w').write("\n".join(CLASSES))
 print("Saved severity_model.h5")
 
 
-# === SNIPPET 11 — Confusion matrix on the trusted hand-labeled val set =======
+# === SNIPPET 8 — Confusion matrix on the trusted hand-labeled val set ========
 y_true, y_pred = [], []
 for x, y in val_ds:
     p = model.predict(x, verbose=0)
@@ -260,7 +189,7 @@ print(cm)
 print("val accuracy (hand-labeled):", round(float(np.trace(cm) / cm.sum()) if cm.sum() else 0, 3))
 
 
-# === SNIPPET 12 — End-to-end demo ============================================
+# === SNIPPET 9 — End-to-end demo =============================================
 import glob
 from IPython.display import Image as IPyImage, display
 
