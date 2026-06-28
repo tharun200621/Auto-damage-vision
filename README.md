@@ -12,6 +12,11 @@ automated insurance triage and used-car inspection.
    "scratch | minor"                          (minor / moderate / severe)
 ```
 
+![End-to-end demo: detected damage labelled with type and severity](kaggle/demo_output.jpg)
+
+*The pipeline on a test image — each detected region is boxed and labelled with
+its damage type and predicted severity.*
+
 ## Why two stages?
 
 Detection and severity are different problems. A YOLO detector is excellent at
@@ -77,10 +82,6 @@ severe  [    0       6       12  ]
 
 Errors concentrate on the severe↔moderate boundary — the most subjective
 distinction — rather than collapsing to a single class.
-
-**Demo**
-
-![demo](kaggle/demo_output.jpg)
 
 ## How to run
 
