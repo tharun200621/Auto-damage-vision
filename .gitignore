@@ -14,6 +14,11 @@ cropped_damage/
 drive-download-*/
 drive-download-*.zip
 
+# --- Root crop dupes: the canonical copy lives in kaggle/severity_data/ ---
+/minor/
+/moderate/
+/severe/
+
 # --- Per-week bulk: run outputs, image dumps, embeddings, weights ---
 week3/runs/
 week3/cnn_data/

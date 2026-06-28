@@ -96,7 +96,8 @@ crops + weights. The cells:
 3. train the MobileNetV2 severity classifier on the hand-labeled crops,
 4. report a confusion matrix + per-class recall, and run the end-to-end demo.
 
-`kaggle/colab_kaggle_snippets.py` is the same flow as copy-paste cells.
+The three `kaggle/1_*.py` … `3_*.py` scripts are the same stages as standalone,
+modular files (train detector → train severity → run the pipeline demo).
 
 ### Severity labels
 
