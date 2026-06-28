@@ -34,9 +34,11 @@ runs/
 training_outputs/
 best_model.pt/          # unzipped checkpoint dir; kaggle/best_model.pt IS tracked
 
-# --- Weights: keep the kaggle/best_model.pt, ignore the rest ---
+# --- Weights: keep the trained models in kaggle/, ignore the rest ---
 /yolov8n.pt
+# the trained severity model IS tracked (negation must have no inline comment)
 *.h5
+!kaggle/severity_model.h5
 
 # --- Notebook / env cruft ---
 .ipynb_checkpoints/
@@ -49,3 +51,4 @@ Untitled.ipynb
 # --- OS ---
 Thumbs.db
 .DS_Store
+kaggle/upload_to_kaggle.zip
