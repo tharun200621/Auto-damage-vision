@@ -1,0 +1,87 @@
+SIC
+-DAY 1{19/02/2025}
+--Function
+	*advantages
+	*key terms( argument and parameters) 
+	*syntax
+	  def function_name(function pa)
+	  #code
+	  print
+	* Arbitary parameters [ simp4, simp5] 
+			-using a function, there are cases when the number of arguements is not determined ---arbitary arugement
+			-a function can accept any number of arguments from the user.
+			-syntax
+				def function_name(*args):
+				# statements
+			-0.N 
+				0.1--arbitary arguements passing
+				0.2--finding the sum of number entered as argument
+	* Default parameters
+		-if the user does not pass an argument, the function uses the default value automatically.
+		-syntax
+			def function_name(parameter = default_value):
+			# statements
+		-0.N
+			-0.1 --> callimg a function without arguements [ simp 7 ]
+			-0.2 --> calling a function with arguements [ simp8 ]
+			-0.3 --> practice using default parameter [ simp9 ]
+				note- Default parameters must be defined from the rightmost side of the parameter list. Once a parameter has a default value, all parameters to its right must also have default values.
+	* Keyword parameters
+		-default method passing method in python
+			note -Positional argument passing is a method where arguments are passed to a function in the same order as the parameters. The order of arguments is important.
+	* Return [simp11, simp12]
+		-The return statement is used to send a value back from a function to the place where it was called.
+		- syntax
+			def function_name(parameters):
+			statements
+			return value
+		-0.N
+			- 0.1 -- a return statemnt that return a result
+			- 0.2 -- a return statement that return a tuple
+	*CODE PAPER*
+
+- STRING
+	-varioius string method
+		--> upper()
+		--> lower()
+		--> endswith() 
+		--> startswith()
+		--> count()
+		--> string()
+		--> find()
+		--> swapcase()
+		--> istitle()
+	-importing modles--> string
+	* RETURN
+		-multiple return
+	* VARIABLE
+		A variable is a name used to store a value in memory that can be used and changed later in a program.
+			- GLOBAL VARIABLE  [simp5]
+				a variable that is created inside a function and can be used only inside that function
+			- LOCAL VARIABLE [simp4]
+				a variable that is created outside all functions and can be used anywhere in the program.
+	* FUNCTIONS AND METHODS
+			A function is a reusable block of code, and a method is a function that is associated with an object.
+			---> format method [ simp6 ]
+				//The format() method is used to insert values into a string in a formatted way.
+	* Recursion		
+		-technique where a function calls itself repeatedly until a stopping condition is reached.
+				-syntax
+					def function_name(parameters):
+						if condition:        # base condition
+							return value
+						else:
+							return function_name(parameters)   # recursive call
+		-disadvantages of recursive Function and Memorisation
+				Disadvantages of Recursion
+					~Uses more memory
+					~Slower than loops
+					~May cause stack overflow
+					~Hard to debug
+				Disadvantages of Memoization
+					~Uses extra memory
+					~Not useful for all problems
+					~Makes program more complex
+		- fibonacci
+			sequence where each number is the sum of the previous two numbers.
+			***PAPER CODING***

@@ -1,0 +1,8 @@
+
+# COCO-like Car Damage Dataset converted to YOLO
+train: /kaggle/input/cardd-with-yolo-annotations-images-labels/train/images
+val: /kaggle/input/cardd-with-yolo-annotations-images-labels/val/images
+test: /kaggle/input/cardd-with-yolo-annotations-images-labels/test/images
+
+nc: 6
+names: ['dent', 'scratch', 'crack', 'glass shatter', 'lamp broken', 'tire flat']

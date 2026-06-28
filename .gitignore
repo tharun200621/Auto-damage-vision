@@ -1,0 +1,51 @@
+# ============================================================
+#  Keep the repo small: track SOURCE (notebooks, scripts, docs,
+#  small labeled crops) and the recovered detector weights.
+#  Exclude all datasets, run outputs, and generated bulk.
+# ============================================================
+
+# --- Datasets (download CarDD separately; see README) ---
+CarDD_release/
+train/
+val/
+test/
+yolo_dataset/
+cropped_damage/
+drive-download-*/
+drive-download-*.zip
+
+# --- Per-week bulk: run outputs, image dumps, embeddings, weights ---
+week3/runs/
+week3/cnn_data/
+week3/image/
+week3/yolov3/
+week3/validation/
+week*/anaconda_projects/
+week 4/CarDD_release/
+week3/0Train_via_annos.json
+week3/0Val_via_annos.json
+
+# --- Large JSON annotation dumps ---
+*_via_annos.json
+
+# --- Training run artifacts (regenerated) ---
+runs/
+**/runs/
+training_outputs/
+best_model.pt/          # unzipped checkpoint dir; kaggle/best_model.pt IS tracked
+
+# --- Weights: keep the kaggle/best_model.pt, ignore the rest ---
+/yolov8n.pt
+*.h5
+
+# --- Notebook / env cruft ---
+.ipynb_checkpoints/
+.virtual_documents/
+anaconda_projects/
+__pycache__/
+*.pyc
+Untitled.ipynb
+
+# --- OS ---
+Thumbs.db
+.DS_Store

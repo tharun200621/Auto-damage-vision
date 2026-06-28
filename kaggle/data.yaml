@@ -1,0 +1,18 @@
+# CarDD (Car Damage Detection) — YOLO format
+# 6 damage classes. Class IDs in the label files are 0..5 in this exact order.
+# On Kaggle, attach the dataset and point these paths at /kaggle/input/<your-dataset>/...
+# Locally, these resolve relative to the repo root.
+
+path: .            # dataset root (override on Kaggle, e.g. /kaggle/input/cardd-yolo)
+train: train/images
+val: val/images
+test: test/images
+
+nc: 6
+names:
+  0: dent
+  1: scratch
+  2: crack
+  3: glass shatter
+  4: lamp broken
+  5: tire flat
