@@ -62,23 +62,41 @@ to YOLO format.
 
 ## How to run
 
-The compute (training) needs a GPU — use a **free Kaggle or Colab GPU runtime**.
-Inference (the demo) runs fine on CPU.
+The compute (training) needs a GPU — use a **free Colab T4 runtime**. Inference (the
+demo) runs fine on CPU.
+
+**Easiest path — one notebook, Run All:** open
+[`kaggle/colab_pipeline.ipynb`](kaggle/colab_pipeline.ipynb) in Colab. It:
+
+1. installs deps and mounts your Drive project folder,
+2. **validates the recovered `best_model.pt`** and retrains the detector only if it's weak,
+3. **auto-labels extra severity crops** (weak supervision) to enlarge the small hand-labeled set,
+4. trains the MobileNetV2 severity classifier (validated on your trusted hand-labels),
+5. runs the end-to-end demo on test images.
+
+Before running, upload the project to Drive (e.g. `MyDrive/auto_damage/`) with
+`best_model.pt`, `data.yaml`, the `train/ val/ test/` folders, and your
+`minor/ moderate/ severe/` crops, then set `PROJECT_DIR` in the first cell.
+
+**Or run the scripts individually:**
 
 ```bash
-# 1. Train the detector (Kaggle/Colab GPU) — produces best_model.pt
-python kaggle/1_train_detector.py
-
-# 2. Crop the dataset, then train the severity model
-#    (use crop_dataset() in 3_pipeline_demo.py, sort crops, then:)
-python kaggle/2_train_severity.py            # -> severity_model.h5
-
-# 3. Run the end-to-end pipeline on any image
+python kaggle/1_train_detector.py                  # -> best_model.pt (GPU)
+python kaggle/2_train_severity.py                  # -> severity_model.h5
 python kaggle/3_pipeline_demo.py path/to/car.jpg   # -> demo_output.jpg
 ```
 
-`kaggle/data.yaml` holds the corrected 6-class config. On Kaggle, set its `path:`
-to your attached dataset directory.
+### Severity labels: weak supervision
+
+Hand-labeling severity is expensive, so only ~195 crops are hand-labeled. To enlarge the
+training set, the notebook **auto-labels** additional crops with a rule over damage type +
+relative box size (e.g. glass shatter / lamp broken → severe; small scratch → minor). These
+noisy auto-labels are used **only for training**; the 195 hand-labels are held out as the
+**trusted validation set**, and the notebook prints a confusion matrix against them so the
+real accuracy is visible.
+
+`kaggle/data.yaml` holds the corrected 6-class config. On Colab/Kaggle, set its `path:`
+to your dataset directory.
 
 ## Tech stack
 
